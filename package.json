@@ -1,0 +1,65 @@
+{
+	"name": "vscode-tosca",
+	"displayName": "TOSCA",
+	"description": "TOSCA language support for VSCode",
+	"author": "Tal Liron",
+	"license": "Apache 2.0",
+	"version": "1.0.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tliron/puccini-vscode"
+	},
+	"bugs": {
+		"url": "https://github.com/tliron/puccini-vscode/issues"
+	},
+	"publisher": "Puccini",
+	"categories": [
+		"Programming Languages",
+		"Formatters"
+	],
+	"keywords": [
+		"tosca",
+		"oasis",
+		"puccini",
+		"yaml"
+	],
+	"engines": {
+		"vscode": "^1.52.0"
+	},
+	"main": "out/extension",
+	"activationEvents": [
+		"*"
+	],
+	"contributes": {
+		"languages": [
+			{
+				"id": "tosca",
+				"aliases": [
+					"TOSCA"
+				],
+				"configuration": "assets/language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "tosca",
+				"scopeName": "source.yaml",
+				"path": "assets/yaml.tmLanguage.json"
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -b",
+		"watch": "tsc -b -w"
+	},
+	"dependencies": {
+		"@types/vscode": "^1.52.0",
+		"vscode-languageclient": "^7.0.0"
+	},
+	"devDependencies": {
+		"@types/node": "^14.14.22",
+		"eslint": "^7.19.0",
+		"typescript": "^4.1.3"
+	}
+}
