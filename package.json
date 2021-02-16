@@ -46,7 +46,19 @@
 				"scopeName": "source.yaml",
 				"path": "assets/yaml.tmLanguage.json"
 			}
-		]
+		],
+		"configuration": {
+			"type": "object",
+			"title": "Configuration",
+			"properties": {
+				"tosca.debug.verbosity": {
+					"scope": "window",
+					"type": "number",
+					"default": 1,
+					"description": "Log verbosity."
+				}
+			}
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",

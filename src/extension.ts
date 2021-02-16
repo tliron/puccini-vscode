@@ -3,8 +3,8 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { workspace, languages, ExtensionContext, TextDocument } from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node';
+import { workspace, languages, ExtensionContext, TextDocument, } from 'vscode';
+import { ClientCapabilities, DocumentSelector, InitializeParams, LanguageClient, LanguageClientOptions, ServerCapabilities, ServerOptions, StaticFeature } from 'vscode-languageclient/node';
 
 export function activate(context: ExtensionContext) {
 	//console.log('TOSCA');
@@ -55,36 +55,69 @@ function checkDocument(textDocument: TextDocument) {
 let client: LanguageClient;
 
 function createClient() {
+	let command = '/home/emblemparade/go/bin/puccini-language-server'
+
 	let serverOptions: ServerOptions = {
-		command: '/home/emblemparade/go/bin/puccini-language-server',
-		args: ['-vv', '--log', '/tmp/p.log'],
-		/*args: ['-vv'],
-		// Logging to stderr isn't working
-		options: <ExecutableOptions>{stdio: ['pipe', 'pipe', 'pipe']}*/
-		/*args: ['--protocol', 'nodejs', '-vv', '--log', '/tmp/p.log'],
-		// "options" will be merged into child_process.spawn's options
-		// See: https://github.com/microsoft/vscode-languageserver-node/blob/master/client/src/node/main.ts#L422
-		options: <ExecutableOptions>{stdio: [null, null, null, 'ipc']}*/
+		run: {
+			command: command
+		},
+		debug: {
+			command: command,
+			args: ['-v']
+		}
 	};
 
-	// Options to control the language client
 	let clientOptions: LanguageClientOptions = {
-		// Register the server for plain text documents
 		documentSelector: [{ scheme: 'file', language: 'tosca' }]
-		//synchronize: {
-			// Notify the server about file changes to '.clientrc files contained in the workspace
-		//	fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
-		//}
 	};
 
-	// Create the language client and start the client.
 	client = new LanguageClient(
 		'tosca',
-		'TOSCA Language Server',
+		'TOSCA Language Server', // this is also the name of the output (log) and trace channels
 		serverOptions,
 		clientOptions
 	);
 
-	// Start the client. This will also launch the server
+	if (startedInDebugMode()) {
+		client.registerFeature(new TraceFeature('verbose'));
+	}
+
 	client.start();
+
+	client.onReady().then(initialize);
+}
+
+function initialize() {
+	//client.sendNotification('$/setTrace', {value: 'verbose'})
+}
+
+class TraceFeature implements StaticFeature {
+	private _trace: 'off' | 'messages' | 'verbose';
+
+	constructor(trace: 'off' | 'messages' | 'verbose') {
+		this._trace = trace;
+	}
+
+	fillInitializeParams(params: InitializeParams): void {
+		params.trace = this._trace;
+	}
+
+	fillClientCapabilities(_capabilities: ClientCapabilities): void {}
+	initialize(_capabilities: ServerCapabilities<any>, _documentSelector: DocumentSelector): void {}
+	dispose(): void {}
+}
+
+// See: https://github.com/microsoft/vscode-languageserver-node/blob/f2902aacfa2fce6f5cb9448d6dffeef2ace3e570/client/src/node/main.ts#L240
+
+const debugStartWith: string[] = ['--debug=', '--debug-brk=', '--inspect=', '--inspect-brk='];
+const debugEquals: string[] = ['--debug', '--debug-brk', '--inspect', '--inspect-brk'];
+
+function startedInDebugMode(): boolean {
+	let args: string[] = (process as any).execArgv;
+	if (args) {
+		return args.some((arg) => {
+			return debugStartWith.some(value => arg.startsWith(value)) || debugEquals.some(value => arg === value);
+		});
+	}
+	return false;
 }
